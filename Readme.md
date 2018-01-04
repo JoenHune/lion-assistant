@@ -50,7 +50,7 @@
 
 ### 2. 文本收发界面
 
-![文本调试界面](https://gitlab.com/sysulion/lion_assistant/blob/master/readmePics/%E6%96%87%E6%9C%AC%E8%B0%83%E8%AF%95%E7%95%8C%E9%9D%A2.png)
+![文本调试界面](https://gitlab.com/sysulion/lion_assistant/raw/master/readmePics/%E6%96%87%E6%9C%AC%E8%B0%83%E8%AF%95%E7%95%8C%E9%9D%A2.png)
 
 分为数据接收显示区（左上）、数据发送编辑区（左下）和设置区（右），设置区可对接收和发送参数进行设置。
 
@@ -72,7 +72,7 @@
 
 ### 3. PID设置界面
 
-![PID调试界面](https://gitlab.com/sysulion/lion_assistant/blob/master/readmePics/PID%E8%B0%83%E8%AF%95%E7%95%8C%E9%9D%A2.png)
+![PID调试界面](https://gitlab.com/sysulion/lion_assistant/raw/master/readmePics/PID%E8%B0%83%E8%AF%95%E7%95%8C%E9%9D%A2.png)
 
 分为虚拟示波器（上方）、示波器设置区（左下）和PID参数设置区（右下）
 
