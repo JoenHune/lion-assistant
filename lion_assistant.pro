@@ -24,3 +24,5 @@ CONFIG += c++11
 
 RESOURCES += \
     lion_assistant.qrc
+
+RC_ICONS = resources\lion_assistant.ico

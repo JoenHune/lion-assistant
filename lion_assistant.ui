@@ -249,7 +249,7 @@
       <item row="0" column="0">
        <widget class="QStackedWidget" name="stkWg_MainUI">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="page_2">
          <layout class="QGridLayout" name="gridLayout_8">
@@ -435,7 +435,7 @@
                 </rect>
                </property>
                <property name="text">
-                <string> </string>
+                <string/>
                </property>
               </widget>
               <widget class="QPushButton" name="btn_iconCh2">
@@ -984,20 +984,20 @@
               <property name="minimumSize">
                <size>
                 <width>141</width>
-                <height>201</height>
+                <height>232</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
                 <width>141</width>
-                <height>201</height>
+                <height>232</height>
                </size>
               </property>
               <widget class="QPushButton" name="btn_Clear">
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>179</y>
+                 <y>210</y>
                  <width>141</width>
                  <height>23</height>
                 </rect>
@@ -1012,7 +1012,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>141</width>
-                 <height>171</height>
+                 <height>201</height>
                 </rect>
                </property>
                <property name="title">
@@ -1051,7 +1051,7 @@
                 <property name="geometry">
                  <rect>
                   <x>10</x>
-                  <y>50</y>
+                  <y>140</y>
                   <width>71</width>
                   <height>21</height>
                  </rect>
@@ -1060,7 +1060,7 @@
                  <string>自动换行</string>
                 </property>
                </widget>
-               <widget class="QCheckBox" name="checkBox_2">
+               <widget class="QCheckBox" name="cb_ShowTx">
                 <property name="geometry">
                  <rect>
                   <x>10</x>
@@ -1090,13 +1090,26 @@
                 <property name="geometry">
                  <rect>
                   <x>10</x>
-                  <y>140</y>
+                  <y>170</y>
                   <width>101</width>
                   <height>21</height>
                  </rect>
                 </property>
                 <property name="text">
                  <string>双色显示收发</string>
+                </property>
+               </widget>
+               <widget class="QCheckBox" name="cb_ShowRx">
+                <property name="geometry">
+                 <rect>
+                  <x>10</x>
+                  <y>50</y>
+                  <width>71</width>
+                  <height>21</height>
+                 </rect>
+                </property>
+                <property name="text">
+                 <string>显示接收</string>
                 </property>
                </widget>
               </widget>

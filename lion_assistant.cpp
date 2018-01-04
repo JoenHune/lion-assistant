@@ -5,7 +5,7 @@ lion_assistant::lion_assistant(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::lion_assistant)
 {
-    setWindowIcon(QIcon(QStringLiteral(":/icon/resources/icon.png")));
+    setWindowIcon(QIcon(QStringLiteral(":/icon/resources/lion_assistant.ico")));
 
     ui->setupUi(this);
     port = new QSerialPort(this);
@@ -253,7 +253,10 @@ void lion_assistant::receive(void)
     }
 
     /* Show the data received. */
-//    insertDataDisplay(data_disp, ui->cb_DoubleColor->isChecked() ? Qt::blue : Qt::black);
+    if(ui->cb_ShowRx->isChecked())
+    {
+        insertDataDisplay(data_disp, ui->cb_DoubleColor->isChecked() ? Qt::blue : Qt::black);
+    }
 
     /* Re-plot oscilloscope. */
     dataProcess(data_src.toHex());
@@ -311,7 +314,10 @@ void lion_assistant::transmitString(void)
     }
 
     /* Show the date sended. */
-    insertDataDisplay(data.toLatin1(), ui->cb_DoubleColor->isChecked() ? Qt::green : Qt::black);
+    if (ui->cb_ShowTx->isChecked())
+    {
+        insertDataDisplay(data.toLatin1(), ui->cb_DoubleColor->isChecked() ? Qt::green : Qt::black);
+    }
 }
 
 /* Transmit hexadecimal number from serial port. */
@@ -630,6 +636,7 @@ void lion_assistant::on_btn_ch1_clicked()
 
     ui->vSlider_offset->setValue(offset1 * 50 / oscilloscope_yMax + 50);
     updateBtnDataLineText();
+    updateBtnReferLineText();
     updateBtnIconChColor();
     oscilloscope->replot();
 }
@@ -640,6 +647,7 @@ void lion_assistant::on_btn_ch2_clicked()
 
     ui->vSlider_offset->setValue(offset2 * 50 / oscilloscope_yMax + 50);
     updateBtnDataLineText();
+    updateBtnReferLineText();
     updateBtnIconChColor();
     oscilloscope->replot();
 }
@@ -650,6 +658,7 @@ void lion_assistant::on_btn_ch3_clicked()
 
     ui->vSlider_offset->setValue(offset3 * 50 / oscilloscope_yMax + 50);
     updateBtnDataLineText();
+    updateBtnReferLineText();
     updateBtnIconChColor();
     oscilloscope->replot();
 }
@@ -660,6 +669,7 @@ void lion_assistant::on_btn_ch4_clicked()
 
     ui->vSlider_offset->setValue(offset4 * 50 / oscilloscope_yMax + 50);
     updateBtnDataLineText();
+    updateBtnReferLineText();
     updateBtnIconChColor();
     oscilloscope->replot();
 }

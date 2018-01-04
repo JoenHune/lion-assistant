@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/icon">
-        <file>resources/icon.png</file>
+        <file>resources/lion_assistant.ico</file>
     </qresource>
 </RCC>
