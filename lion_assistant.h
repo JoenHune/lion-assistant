@@ -16,7 +16,10 @@
 
 #define MSG_HEAD "ffff"
 #define MSG_LENGTH 20
-#define MAX_DATA_AMOUNT 1000
+#define MAX_DATA_AMOUNT 600
+#define MAX_SLIDERVALUE 300
+#define MIN_SLIDERVALUE 0
+#define MID_SLIDERVALUE (MAX_SLIDERVALUE - MIN_SLIDERVALUE) / 2
 
 namespace Ui {
 class lion_assistant;
@@ -53,6 +56,9 @@ public slots:
     void initialOscilloscope(void);
     void updateOscilloscope(void);
     void dataProcess(QByteArray);
+    void scanComs(void);
+    int calculateSliderValue(double);
+    void updateOffset(double &, int);
 
 private slots:
     void on_btn_TextUI_clicked();
@@ -86,17 +92,23 @@ private slots:
 
     void on_list_PIDvalue_itemDoubleClicked(QListWidgetItem *item);
 
+    void on_list_PIDvalue_itemClicked(QListWidgetItem *item);
+
+    void on_cb_selectAllChannel_clicked(bool checked);
+
 private:
     Ui::lion_assistant *ui;
     QSerialPort* port;
-    QTimer* timer;
+    QTimer *timer, *timerScanComs;
     QList<QSerialPortInfo> portList;
     QCustomPlot *oscilloscope;
     QCPGraph *channel1, *channel2, *channel3, *channel4;
     QCPGraph *refer1, *refer2, *refer3, *refer4;
+    QClipboard *clipboard = QApplication::clipboard();
+
+    QString oscilloscope_lastItemText;
 
     long dataQuantity;
-    bool isPortOpen = false;
     int delayms;
     int looptimes;
     bool dataProcess_hasMsgHead;
@@ -121,7 +133,11 @@ private:
     int oscilloscope_xMax;
     int oscilloscope_yMax;
 
-    int oscilloscope_selectedCh;
+    int oscilloscope_selectedChannel;
+    int oscilloscope_lastSelectedChannel;
+
+    int oscilloscope_lastSliderValue;
+    bool serial_isOpen;
 };
 
 #endif // lion_assistant_H

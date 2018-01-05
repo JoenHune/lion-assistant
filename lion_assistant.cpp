@@ -10,6 +10,9 @@ lion_assistant::lion_assistant(QWidget *parent) :
     ui->setupUi(this);
     port = new QSerialPort(this);
     timer = new QTimer(this);
+    timerScanComs = new QTimer(this);
+
+
     ui->btn_Send->setEnabled(false);
     ui->sb_Delay->setRange(0, 10000);
 
@@ -46,11 +49,13 @@ lion_assistant::lion_assistant(QWidget *parent) :
     refer3->setVisible(oscilloscope_isOpenRefer3);
     refer4->setVisible(oscilloscope_isOpenRefer4);
 
-    ui->dial_vertical->setRange(10, 90);
+    ui->dial_vertical->setRange(1, 999);
     ui->dial_horizontal->setRange(10, 90);
+    ui->vSlider_offset->setRange(MIN_SLIDERVALUE, MAX_SLIDERVALUE);
+    oscilloscope_lastSliderValue = MID_SLIDERVALUE;
 
-    oscilloscope_xMax = 1000;
-    oscilloscope_yMax = 32768;
+    oscilloscope_xMax = MAX_DATA_AMOUNT;
+    oscilloscope_yMax = 3277;
 
     offset1 = 0;
     offset2 = 0;
@@ -59,6 +64,12 @@ lion_assistant::lion_assistant(QWidget *parent) :
 
     updateBtnIconChColor();
     on_btn_ch1_clicked();
+
+    serial_isOpen = false;
+
+    oscilloscope_lastSelectedChannel = 1;
+
+    updateOscilloscope();
 }
 
 lion_assistant::~lion_assistant()
@@ -81,8 +92,11 @@ void lion_assistant::initSerialPortSetting(void)
     }
     if(ui->cmb_PortName->count() == 0)
     {
-        ui->cmb_PortName->addItem(tr("没有可用串口"));
+//        ui->cmb_PortName->addItem(tr("没有可用串口"));
         ui->btn_OpenSerial->setEnabled(false);
+
+        // 1s扫描一次串口
+        timerScanComs->start(1000);
     }
 
     /* Insert choices of baud rate into QComboBox. Keep this->baudRate and baudRate in same order. */
@@ -157,7 +171,10 @@ void lion_assistant::connections(void)
     connect(timer,&QTimer::timeout,this,&lion_assistant::transmit);
 
     /* Stop transmit loop */
-    connect(timer,&QTimer::timeout,[&]{looptimes--;if(looptimes<=0) timer->stop();});
+    connect(timer,&QTimer::timeout,[&]{looptimes--;if(looptimes<=0 || !ui->cb_AutoSent->isChecked()) timer->stop();});
+
+    // 定时扫描可用串口
+    connect(timerScanComs, &QTimer::timeout, this, &lion_assistant::scanComs);
 }
 
 /* Insert text into ui->tb_rx_msg with color(default black). */
@@ -180,12 +197,12 @@ void lion_assistant::insertDataDisplay(const QByteArray& text, const QColor& col
 /* Open or close the serial port. */
 void lion_assistant::switchSerial(void)
 {
-    if(isPortOpen)
+    if(serial_isOpen)
     {
         /* If serial port is open,close it. */
         port->close();
         ui->btn_OpenSerial->setText(tr("打开串口"));
-        isPortOpen = false;
+        serial_isOpen = false;
 
         /* Enable all QComboBox.*/
         ui->cmb_PortName->setEnabled(true);
@@ -193,6 +210,9 @@ void lion_assistant::switchSerial(void)
         ui->cmb_DataBits->setEnabled(true);
         ui->cmb_Parity->setEnabled(true);
         ui->cmb_StopBits->setEnabled(true);
+
+        // 重新打开串口扫描
+        timerScanComs->start(1000);
     }
     else
     {
@@ -207,13 +227,16 @@ void lion_assistant::switchSerial(void)
         if(port->open(QSerialPort::ReadWrite))
         {
             ui->btn_OpenSerial->setText(tr("关闭串口"));
-            isPortOpen = true;
+            serial_isOpen = true;
             /* Disable all QComboBox.*/
             ui->cmb_PortName->setEnabled(false);
             ui->cmb_BaudRate->setEnabled(false);
             ui->cmb_DataBits->setEnabled(false);
             ui->cmb_Parity->setEnabled(false);
             ui->cmb_StopBits->setEnabled(false);
+
+            // 关闭串口扫描
+            timerScanComs->stop();
         }
         else
         {
@@ -223,7 +246,7 @@ void lion_assistant::switchSerial(void)
     }
 
     /* Enable or disable ui->btn_Send QPushButton. */
-    ui->btn_Send->setEnabled(isPortOpen);
+    ui->btn_Send->setEnabled(serial_isOpen);
     // ui->btn_SendFile->setEnabled(isPortOpen);
 }
 
@@ -316,7 +339,7 @@ void lion_assistant::transmitString(void)
     /* Show the date sended. */
     if (ui->cb_ShowTx->isChecked())
     {
-        insertDataDisplay(data.toLatin1(), ui->cb_DoubleColor->isChecked() ? Qt::green : Qt::black);
+        insertDataDisplay(data.toLatin1(), ui->cb_DoubleColor->isChecked() ? QColor(10, 135, 40) : Qt::black);
     }
 }
 
@@ -502,7 +525,7 @@ double byteArr2d(QByteArray src)
             rst = rst * 16 + src[i] - '0';
         }
     }
-    return rst;
+    return (rst - 32768) / 10;
 }
 
 void lion_assistant::dataProcess(QByteArray data)
@@ -632,46 +655,47 @@ void lion_assistant::updateOscilloscope()
 
 void lion_assistant::on_btn_ch1_clicked()
 {
-    oscilloscope_selectedCh = 1;
+    oscilloscope_selectedChannel = 1;
 
-    ui->vSlider_offset->setValue(offset1 * 50 / oscilloscope_yMax + 50);
+    ui->vSlider_offset->setValue(calculateSliderValue(offset1));
     updateBtnDataLineText();
     updateBtnReferLineText();
     updateBtnIconChColor();
-    oscilloscope->replot();
+    ui->cb_selectAllChannel->setChecked(false);
+//    on_cb_selectAllChannel_stateChanged(0);
 }
 
 void lion_assistant::on_btn_ch2_clicked()
 {
-    oscilloscope_selectedCh = 2;
+    oscilloscope_selectedChannel = 2;
 
-    ui->vSlider_offset->setValue(offset2 * 50 / oscilloscope_yMax + 50);
+    ui->vSlider_offset->setValue(calculateSliderValue(offset2));
     updateBtnDataLineText();
     updateBtnReferLineText();
     updateBtnIconChColor();
-    oscilloscope->replot();
+    ui->cb_selectAllChannel->setChecked(false);
 }
 
 void lion_assistant::on_btn_ch3_clicked()
 {
-    oscilloscope_selectedCh = 3;
+    oscilloscope_selectedChannel = 3;
 
-    ui->vSlider_offset->setValue(offset3 * 50 / oscilloscope_yMax + 50);
+    ui->vSlider_offset->setValue(calculateSliderValue(offset3));
     updateBtnDataLineText();
     updateBtnReferLineText();
     updateBtnIconChColor();
-    oscilloscope->replot();
+//    oscilloscope->replot();
 }
 
 void lion_assistant::on_btn_ch4_clicked()
 {
-    oscilloscope_selectedCh = 4;
+    oscilloscope_selectedChannel = 4;
 
-    ui->vSlider_offset->setValue(offset4 * 50 / oscilloscope_yMax + 50);
+    ui->vSlider_offset->setValue(calculateSliderValue(offset4));
     updateBtnDataLineText();
     updateBtnReferLineText();
     updateBtnIconChColor();
-    oscilloscope->replot();
+//    oscilloscope->replot();
 }
 
 void lion_assistant::on_btn_oscilClear_clicked()
@@ -686,8 +710,8 @@ void lion_assistant::on_btn_oscilClear_clicked()
 void lion_assistant::on_dial_vertical_actionTriggered()
 {
     int dialValue = ui->dial_vertical->value();
-    oscilloscope_yMax = int(32768 * (100 - dialValue) / 100);
-    ui->statusBar->showMessage(QString::number(ui->dial_horizontal->value()));
+    oscilloscope_yMax = int(3277 * (1000 - dialValue) / 100);
+//    ui->statusBar->showMessage(QString::number(oscilloscope_yMax));
 }
 
 void lion_assistant::on_dial_horizontal_actionTriggered()
@@ -696,22 +720,49 @@ void lion_assistant::on_dial_horizontal_actionTriggered()
     oscilloscope_xMax = int(1000 * (100 - dialValue) / 100);
 }
 
+int lion_assistant::calculateSliderValue(double offset)
+{
+    return int(offset * 50 / oscilloscope_yMax + MID_SLIDERVALUE);
+}
+
+void lion_assistant::updateOffset(double &offset, int sliderValueChanged)
+{
+    ui->statusBar->showMessage(QString::number(sliderValueChanged));
+    double change = 2 * oscilloscope_yMax * sliderValueChanged / 100;
+
+    if (calculateSliderValue(offset + change) > MAX_SLIDERVALUE)
+        offset = 2 * oscilloscope_yMax * (MAX_SLIDERVALUE - MID_SLIDERVALUE) / 100;
+    else if (calculateSliderValue(offset + change) < 0)
+        offset = 2 * oscilloscope_yMax * (MIN_SLIDERVALUE - MID_SLIDERVALUE) / 100;
+    else offset += change;
+}
+
 void lion_assistant::on_vSlider_offset_actionTriggered()
 {
     int sliderValue = ui->vSlider_offset->value();
 
-    switch (oscilloscope_selectedCh) {
+    switch (oscilloscope_selectedChannel) {
     case 1:
-        offset1 = 2 * oscilloscope_yMax * (sliderValue - 50) / 100;
+        offset1 = 2 * oscilloscope_yMax * (sliderValue - MID_SLIDERVALUE) / 100;
         break;
     case 2:
-        offset2 = 2 * oscilloscope_yMax * (sliderValue - 50) / 100;
+        offset2 = 2 * oscilloscope_yMax * (sliderValue - MID_SLIDERVALUE) / 100;
         break;
     case 3:
-        offset3 = 2 * oscilloscope_yMax * (sliderValue - 50) / 100;
+        offset3 = 2 * oscilloscope_yMax * (sliderValue - MID_SLIDERVALUE) / 100;
         break;
     case 4:
-        offset4 = 2 * oscilloscope_yMax * (sliderValue - 50) / 100;
+        offset4 = 2 * oscilloscope_yMax * (sliderValue - MID_SLIDERVALUE) / 100;
+        break;
+    case 5:
+        if (ui->cb_selectAllChannel->isChecked())
+        {
+            updateOffset(offset1, sliderValue - oscilloscope_lastSliderValue);
+            updateOffset(offset2, sliderValue - oscilloscope_lastSliderValue);
+            updateOffset(offset3, sliderValue - oscilloscope_lastSliderValue);
+            updateOffset(offset4, sliderValue - oscilloscope_lastSliderValue);
+        }
+        oscilloscope_lastSliderValue = sliderValue;
         break;
     default:
         break;
@@ -722,7 +773,7 @@ void lion_assistant::on_vSlider_offset_actionTriggered()
 
 void lion_assistant::on_btn_referLine_clicked()
 {
-    switch (oscilloscope_selectedCh) {
+    switch (oscilloscope_selectedChannel) {
     case 1:
         oscilloscope_isOpenRefer1 = !oscilloscope_isOpenRefer1;
         refer1->setVisible(oscilloscope_isOpenRefer1);
@@ -743,14 +794,28 @@ void lion_assistant::on_btn_referLine_clicked()
         refer4->setVisible(oscilloscope_isOpenRefer4);
         updateBtnReferLineText();
         break;
+    case 5:
+        oscilloscope_isOpenRefer1 = !oscilloscope_isOpenRefer1;
+        oscilloscope_isOpenRefer2 =  oscilloscope_isOpenRefer1;
+        oscilloscope_isOpenRefer3 =  oscilloscope_isOpenRefer1;
+        oscilloscope_isOpenRefer4 =  oscilloscope_isOpenRefer1;
+        refer1->setVisible(oscilloscope_isOpenRefer1);
+        refer2->setVisible(oscilloscope_isOpenRefer2);
+        refer3->setVisible(oscilloscope_isOpenRefer3);
+        refer4->setVisible(oscilloscope_isOpenRefer4);
+        updateBtnIconChColor();
+        updateBtnReferLineText();
+        break;
     default:
         break;
     }
+
+    updateOscilloscope();
 }
 
 void lion_assistant::on_btn_zeroOffset_clicked()
 {
-    switch (oscilloscope_selectedCh) {
+    switch (oscilloscope_selectedChannel) {
     case 1:
         offset1 = 0;
         break;
@@ -763,16 +828,24 @@ void lion_assistant::on_btn_zeroOffset_clicked()
     case 4:
         offset4 = 0;
         break;
+    case 5:
+        offset1 = 0;
+        offset2 = 0;
+        offset3 = 0;
+        offset4 = 0;
+        break;
     default:
         break;
     }
 
-    ui->vSlider_offset->setValue(50);
+    ui->vSlider_offset->setValue(MID_SLIDERVALUE);
+
+    updateOscilloscope();
 }
 
 void lion_assistant::on_btn_dataLine_clicked()
 {
-    switch (oscilloscope_selectedCh) {
+    switch (oscilloscope_selectedChannel) {
     case 1:
         oscilloscope_isOpenCh1 = !oscilloscope_isOpenCh1;
         channel1->setVisible(oscilloscope_isOpenCh1);
@@ -797,9 +870,23 @@ void lion_assistant::on_btn_dataLine_clicked()
         updateBtnIconChColor();
         updateBtnDataLineText();
         break;
+    case 5:
+        oscilloscope_isOpenCh1 = !oscilloscope_isOpenCh1;
+        oscilloscope_isOpenCh2 =  oscilloscope_isOpenCh1;
+        oscilloscope_isOpenCh3 =  oscilloscope_isOpenCh1;
+        oscilloscope_isOpenCh4 =  oscilloscope_isOpenCh1;
+        channel1->setVisible(oscilloscope_isOpenCh1);
+        channel2->setVisible(oscilloscope_isOpenCh2);
+        channel3->setVisible(oscilloscope_isOpenCh3);
+        channel4->setVisible(oscilloscope_isOpenCh4);
+        updateBtnIconChColor();
+        updateBtnDataLineText();
+        break;
     default:
         break;
     }
+
+    updateOscilloscope();
 }
 
 void lion_assistant::updateBtnIconChColor()
@@ -817,7 +904,7 @@ void lion_assistant::updateBtnIconChColor()
             iconCh3Style,
             iconCh4Style;
 
-    switch (oscilloscope_selectedCh)
+    switch (oscilloscope_selectedChannel)
     {
         case 1:
             iconCh1Style = iconBorderY;
@@ -843,6 +930,12 @@ void lion_assistant::updateBtnIconChColor()
             iconCh3Style = iconBorderN;
             iconCh4Style = iconBorderY;
             break;
+        case 5:
+            iconCh1Style = iconBorderN;
+            iconCh2Style = iconBorderN;
+            iconCh3Style = iconBorderN;
+            iconCh4Style = iconBorderN;
+            break;
         default:
             break;
     }
@@ -860,7 +953,7 @@ void lion_assistant::updateBtnIconChColor()
 
 void lion_assistant::updateBtnDataLineText()
 {
-    switch (oscilloscope_selectedCh) {
+    switch (oscilloscope_selectedChannel) {
     case 1:
         if (oscilloscope_isOpenCh1) ui->btn_dataLine->setText("隐藏波形");
         else                        ui->btn_dataLine->setText("显示波形");
@@ -877,6 +970,14 @@ void lion_assistant::updateBtnDataLineText()
         if (oscilloscope_isOpenCh4) ui->btn_dataLine->setText("隐藏波形");
         else                        ui->btn_dataLine->setText("显示波形");
         break;
+    case 5:
+        if (oscilloscope_isOpenCh1
+         || oscilloscope_isOpenCh2
+         || oscilloscope_isOpenCh3
+         || oscilloscope_isOpenCh4)
+            ui->btn_dataLine->setText("隐藏波形");
+        else
+            ui->btn_dataLine->setText("显示波形");
     default:
         break;
     }
@@ -884,7 +985,7 @@ void lion_assistant::updateBtnDataLineText()
 
 void lion_assistant::updateBtnReferLineText()
 {
-    switch (oscilloscope_selectedCh) {
+    switch (oscilloscope_selectedChannel) {
     case 1:
         if (oscilloscope_isOpenRefer1) ui->btn_referLine->setText("隐藏基线");
         else                           ui->btn_referLine->setText("显示基线");
@@ -900,6 +1001,15 @@ void lion_assistant::updateBtnReferLineText()
     case 4:
         if (oscilloscope_isOpenRefer4) ui->btn_referLine->setText("隐藏基线");
         else                           ui->btn_referLine->setText("显示基线");
+        break;
+    case 5:
+        if (oscilloscope_isOpenRefer1
+         || oscilloscope_isOpenRefer2
+         || oscilloscope_isOpenRefer3
+         || oscilloscope_isOpenRefer4)
+            ui->btn_referLine->setText("隐藏基线");
+        else
+            ui->btn_referLine->setText("显示基线");
         break;
     default:
         break;
@@ -927,7 +1037,7 @@ void lion_assistant::on_btn_SendPID_clicked()
 
     if(port->write(Requirement.toStdString().c_str()) == -1)
     {
-        statusBar()->showMessage("Send PID failed : " + port->errorString());
+        statusBar()->showMessage("Send PID failed : " + port->errorString(), 5000);
         return;
     }
 }
@@ -987,5 +1097,115 @@ void lion_assistant::on_list_PIDvalue_itemDoubleClicked(QListWidgetItem *item)
                 }
             break;
         }
+    }
+}
+
+void lion_assistant::scanComs()
+{
+    bool serial_isAvailable = false;
+    if (!serial_isOpen)
+    {
+        ui->cmb_PortName->clear();
+
+        // 遍历可选串口信息
+        foreach (const QSerialPortInfo &portInfo, QSerialPortInfo::availablePorts())
+        {
+            QSerialPort serial;
+            serial.setPort(portInfo);
+
+            // 尝试以读写的方式打开串口
+            if (serial.open(QIODevice::ReadWrite))
+            {
+                // 成功开启，将可用串口加到可选列表中
+                ui->cmb_PortName->addItem(portInfo.portName());
+
+                // 关闭自动开启，等待认为打开
+                serial.close();
+
+                // 设置串口可用flag
+                serial_isAvailable = true;
+            }
+        }
+
+        serial_isAvailable ? ui->btn_OpenSerial->setEnabled(true)
+                           : ui->btn_OpenSerial->setEnabled(false);
+    }
+}
+
+void lion_assistant::on_list_PIDvalue_itemClicked(QListWidgetItem *item)
+{
+    QString itemText = item->text(),
+            text2clipboard;
+
+    // 避免多次点击占满粘贴板
+    if (oscilloscope_lastItemText == itemText)
+        return;
+
+    oscilloscope_lastItemText = itemText;
+
+    itemText.trimmed();
+    itemText.replace(" ", "");
+
+    text2clipboard = "[Lion Assistant]\n";
+    text2clipboard += QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss") + "\n";
+    text2clipboard += "-------------------\n";
+
+    foreach(QString value, item->text().split("|"))
+    {
+        value.trimmed();
+        value.replace(" ", "");
+
+        switch (value[0].toLatin1())
+        {
+            case 'P':
+                text2clipboard += "P = " + value.mid(2) + "\n";
+            break;
+            case 'I':
+                text2clipboard += "I = " + value.mid(2) + "\n";
+            break;
+            case 'D':
+                text2clipboard += "D = " + value.mid(2) + "\n";
+            break;
+            default:
+                if (value[3] == '1')
+                {
+                    text2clipboard += "opt1 = " + value.mid(5) + "\n";
+                }
+                else
+                {
+                    text2clipboard += "opt2 = " + value.mid(5) + "\n";
+                }
+            break;
+        }
+    }
+
+    text2clipboard += "Comment: \n";
+
+    clipboard->setText(text2clipboard);
+}
+
+void lion_assistant::on_cb_selectAllChannel_clicked(bool checked)
+{
+    // 勾选
+    if (checked)
+    {
+        oscilloscope_lastSelectedChannel = oscilloscope_selectedChannel;
+        oscilloscope_selectedChannel = 5;
+        updateBtnIconChColor();
+        updateBtnDataLineText();
+        updateBtnReferLineText();
+
+        oscilloscope_lastSliderValue = MID_SLIDERVALUE;
+        ui->vSlider_offset->setValue(MID_SLIDERVALUE);
+    }
+
+    // 取消勾选
+    else switch(oscilloscope_lastSelectedChannel)
+    {
+        case 1: on_btn_ch1_clicked(); break;
+        case 2: on_btn_ch2_clicked(); break;
+        case 3: on_btn_ch3_clicked(); break;
+        case 4: on_btn_ch4_clicked(); break;
+        default: break;
     }
 }

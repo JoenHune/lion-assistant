@@ -249,7 +249,7 @@
       <item row="0" column="0">
        <widget class="QStackedWidget" name="stkWg_MainUI">
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="page_2">
          <layout class="QGridLayout" name="gridLayout_8">
@@ -295,7 +295,7 @@
               <widget class="QPushButton" name="btn_dataLine">
                <property name="geometry">
                 <rect>
-                 <x>140</x>
+                 <x>70</x>
                  <y>149</y>
                  <width>61</width>
                  <height>23</height>
@@ -399,7 +399,7 @@
                  <x>280</x>
                  <y>9</y>
                  <width>22</width>
-                 <height>161</height>
+                 <height>131</height>
                 </rect>
                </property>
                <property name="value">
@@ -412,7 +412,7 @@
               <widget class="QPushButton" name="btn_zeroOffset">
                <property name="geometry">
                 <rect>
-                 <x>70</x>
+                 <x>210</x>
                  <y>149</y>
                  <width>61</width>
                  <height>23</height>
@@ -495,7 +495,7 @@
               <widget class="QPushButton" name="btn_referLine">
                <property name="geometry">
                 <rect>
-                 <x>210</x>
+                 <x>140</x>
                  <y>149</y>
                  <width>61</width>
                  <height>23</height>
@@ -503,6 +503,22 @@
                </property>
                <property name="text">
                 <string>显示基线</string>
+               </property>
+              </widget>
+              <widget class="QCheckBox" name="cb_selectAllChannel">
+               <property name="geometry">
+                <rect>
+                 <x>284</x>
+                 <y>152</y>
+                 <width>16</width>
+                 <height>16</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="checked">
+                <bool>false</bool>
                </property>
               </widget>
               <zorder>btn_ch4</zorder>
@@ -522,6 +538,7 @@
               <zorder>btn_iconCh3</zorder>
               <zorder>btn_iconCh4</zorder>
               <zorder>btn_referLine</zorder>
+              <zorder>cb_selectAllChannel</zorder>
              </widget>
             </item>
             <item>
@@ -666,8 +683,14 @@
                   <height>0</height>
                  </size>
                 </property>
+                <property name="decimals">
+                 <number>5</number>
+                </property>
                 <property name="maximum">
                  <double>9999.989999999999782</double>
+                </property>
+                <property name="singleStep">
+                 <double>0.001000000000000</double>
                 </property>
                </widget>
                <widget class="QLabel" name="label_Ivalue">
@@ -776,6 +799,9 @@
                 </property>
                 <property name="maximum">
                  <double>9999.989999999999782</double>
+                </property>
+                <property name="singleStep">
+                 <double>10.000000000000000</double>
                 </property>
                </widget>
                <widget class="QLabel" name="label_value">
