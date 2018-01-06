@@ -86,18 +86,9 @@ void lion_assistant::initSerialPortSetting(void)
 {
     /* Insert the available serial ports into QComboBox. Keep infolist and ui->cmb_PortName in same order.*/
     portList = QSerialPortInfo::availablePorts();
-    foreach(const QSerialPortInfo& info, portList)
-    {
-        ui->cmb_PortName->addItem(info.portName());
-    }
-    if(ui->cmb_PortName->count() == 0)
-    {
-//        ui->cmb_PortName->addItem(tr("没有可用串口"));
-        ui->btn_OpenSerial->setEnabled(false);
 
-        // 1s扫描一次串口
-        timerScanComs->start(1000);
-    }
+    // 1s扫描一次串口
+    timerScanComs->start(1000);
 
     /* Insert choices of baud rate into QComboBox. Keep this->baudRate and baudRate in same order. */
     this->baudRate << QSerialPort::Baud115200 << QSerialPort::Baud57600 << QSerialPort::Baud38400
