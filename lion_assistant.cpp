@@ -653,7 +653,6 @@ void lion_assistant::on_btn_ch1_clicked()
     updateBtnReferLineText();
     updateBtnIconChColor();
     ui->cb_selectAllChannel->setChecked(false);
-//    on_cb_selectAllChannel_stateChanged(0);
 }
 
 void lion_assistant::on_btn_ch2_clicked()
@@ -675,7 +674,7 @@ void lion_assistant::on_btn_ch3_clicked()
     updateBtnDataLineText();
     updateBtnReferLineText();
     updateBtnIconChColor();
-//    oscilloscope->replot();
+    ui->cb_selectAllChannel->setChecked(false);
 }
 
 void lion_assistant::on_btn_ch4_clicked()
@@ -686,7 +685,7 @@ void lion_assistant::on_btn_ch4_clicked()
     updateBtnDataLineText();
     updateBtnReferLineText();
     updateBtnIconChColor();
-//    oscilloscope->replot();
+    ui->cb_selectAllChannel->setChecked(false);
 }
 
 void lion_assistant::on_btn_oscilClear_clicked()
