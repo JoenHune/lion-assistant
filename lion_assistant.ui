@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>876</width>
-    <height>620</height>
+    <height>656</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -249,7 +249,7 @@
       <item row="0" column="0">
        <widget class="QStackedWidget" name="stkWg_MainUI">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="page_2">
          <layout class="QGridLayout" name="gridLayout_8">
@@ -620,14 +620,14 @@
               <widget class="QPushButton" name="btn_Mark">
                <property name="geometry">
                 <rect>
-                 <x>0</x>
-                 <y>90</y>
-                 <width>141</width>
+                 <x>185</x>
+                 <y>91</y>
+                 <width>55</width>
                  <height>23</height>
                 </rect>
                </property>
                <property name="text">
-                <string>记录</string>
+                <string>收藏</string>
                </property>
               </widget>
               <widget class="QPlainTextEdit" name="tx_option2">
@@ -643,9 +643,9 @@
               <widget class="QPushButton" name="btn_SendPID">
                <property name="geometry">
                 <rect>
-                 <x>160</x>
-                 <y>90</y>
-                 <width>141</width>
+                 <x>246</x>
+                 <y>91</y>
+                 <width>56</width>
                  <height>23</height>
                 </rect>
                </property>
@@ -820,6 +820,45 @@
                  <set>Qt::AlignCenter</set>
                 </property>
                </widget>
+              </widget>
+              <widget class="QPushButton" name="btn_exportMark">
+               <property name="geometry">
+                <rect>
+                 <x>61</x>
+                 <y>91</y>
+                 <width>55</width>
+                 <height>23</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>导入</string>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="btn_importMark">
+               <property name="geometry">
+                <rect>
+                 <x>123</x>
+                 <y>91</y>
+                 <width>55</width>
+                 <height>23</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>导出</string>
+               </property>
+              </widget>
+              <widget class="QPushButton" name="btn_clearMark">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>91</y>
+                 <width>55</width>
+                 <height>23</height>
+                </rect>
+               </property>
+               <property name="text">
+                <string>清空</string>
+               </property>
               </widget>
              </widget>
             </item>
