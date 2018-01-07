@@ -701,13 +701,16 @@ void lion_assistant::on_dial_vertical_actionTriggered()
 {
     int dialValue = ui->dial_vertical->value();
     oscilloscope_yMax = int(3277 * (1000 - dialValue) / 100);
-//    ui->statusBar->showMessage(QString::number(oscilloscope_yMax));
+
+    updateOscilloscope();
 }
 
 void lion_assistant::on_dial_horizontal_actionTriggered()
 {
     int dialValue = ui->dial_horizontal->value();
     oscilloscope_xMax = int(1000 * (100 - dialValue) / 100);
+
+    updateOscilloscope();
 }
 
 int lion_assistant::calculateSliderValue(double offset)
@@ -1198,4 +1201,9 @@ void lion_assistant::on_cb_selectAllChannel_clicked(bool checked)
         case 4: on_btn_ch4_clicked(); break;
         default: break;
     }
+}
+
+void lion_assistant::on_sb_Delay_valueChanged()
+{
+    transmitCircularly();
 }

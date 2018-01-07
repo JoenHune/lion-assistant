@@ -96,6 +96,8 @@ private slots:
 
     void on_cb_selectAllChannel_clicked(bool checked);
 
+    void on_sb_Delay_valueChanged();
+
 private:
     Ui::lion_assistant *ui;
     QSerialPort* port;
