@@ -583,7 +583,7 @@ public:
 
         retranslateUi(lion_assistant);
 
-        stkWg_MainUI->setCurrentIndex(1);
+        stkWg_MainUI->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(lion_assistant);

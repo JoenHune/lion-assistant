@@ -162,7 +162,7 @@ void lion_assistant::connections(void)
     connect(timer,&QTimer::timeout,this,&lion_assistant::transmit);
 
     /* Stop transmit loop */
-    connect(timer,&QTimer::timeout,[&]{looptimes--;if(looptimes<=0 || !ui->cb_AutoSent->isChecked()) timer->stop();});
+    connect(timer,&QTimer::timeout,[&]{if(!ui->cb_AutoSent->isChecked()) timer->stop();});
 
     // 定时扫描可用串口
     connect(timerScanComs, &QTimer::timeout, this, &lion_assistant::scanComs);
@@ -382,11 +382,11 @@ void lion_assistant::transmitHexadecimal(void)
 /* Transmit data circularly by setting. */
 void lion_assistant::transmitCircularly(void)
 {
-    delayms = ui->sb_Delay->text().toInt();
+    text_delayms = ui->sb_Delay->text().toInt();
     // looptimes = ui->times->text().toInt();
     // if(looptimes>0)
     // {
-        timer->start(delayms);
+        timer->start(text_delayms);
     // }
 }
 
@@ -1059,6 +1059,8 @@ void lion_assistant::on_list_PIDvalue_itemDoubleClicked(QListWidgetItem *item)
 {
     double P, I, D;
 
+    clearPIDparams();
+
     foreach(QString value, item->text().split("|"))
     {
         value.trimmed();
@@ -1206,4 +1208,61 @@ void lion_assistant::on_cb_selectAllChannel_clicked(bool checked)
 void lion_assistant::on_sb_Delay_valueChanged()
 {
     transmitCircularly();
+}
+
+void lion_assistant::clearPIDparams()
+{
+    ui->tx_Pvalue->clear();
+    ui->tx_Ivalue->clear();
+    ui->tx_Dvalue->clear();
+    ui->tx_option1->clear();
+    ui->tx_option2->clear();
+}
+
+void lion_assistant::on_tx_option1_textChanged()
+{
+//  粘贴功能的开发暂时搁置，没有好的逻辑
+//    double P, I, D;
+
+//    QString text = ui->tx_option1->toPlainText();
+
+//    foreach(QString t, text.split("\n"))
+//    {
+//        t.trimmed();
+//        t.replace(" ", "");
+//        switch (t[0].toLatin1())
+//        {
+//            case 'P':
+//                P = t.mid(2).toDouble();
+//                ui->tx_Pvalue->setValue(P);
+//            break;
+//            case 'I':
+//                I = t.mid(2).toDouble();
+//                ui->tx_Ivalue->setValue(I);
+//            break;
+//            case 'D':
+//                D = t.mid(2).toDouble();
+//                ui->tx_Dvalue->setValue(D);
+//            break;
+//            default:
+//                if (t[3] == '1')
+//                {
+//                    ui->tx_option1->setPlainText(t.mid(5));
+//                    ui->cb_option1->setChecked(true);
+//                }
+//                else if (t[3] == '2')
+//                {
+//                    ui->tx_option2->setPlainText(t.mid(5));
+//                    ui->cb_option2->setChecked(true);
+//                }
+//                else break;
+//        }
+//    }
+}
+
+
+
+void lion_assistant::on_btn_clearMark_clicked()
+{
+    ui->list_PIDvalue->clear();
 }
