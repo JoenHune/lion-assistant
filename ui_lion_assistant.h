@@ -583,7 +583,7 @@ public:
 
         retranslateUi(lion_assistant);
 
-        stkWg_MainUI->setCurrentIndex(0);
+        stkWg_MainUI->setCurrentIndex(1);
 
 
         QMetaObject::connectSlotsByName(lion_assistant);
@@ -624,8 +624,8 @@ public:
         label_Ivalue->setText(QApplication::translate("lion_assistant", "I", nullptr));
         label_Pvalue->setText(QApplication::translate("lion_assistant", "P", nullptr));
         label_value->setText(QApplication::translate("lion_assistant", "D", nullptr));
-        btn_exportMark->setText(QApplication::translate("lion_assistant", "\345\257\274\345\205\245", nullptr));
-        btn_importMark->setText(QApplication::translate("lion_assistant", "\345\257\274\345\207\272", nullptr));
+        btn_exportMark->setText(QApplication::translate("lion_assistant", "\345\257\274\345\207\272", nullptr));
+        btn_importMark->setText(QApplication::translate("lion_assistant", "\345\257\274\345\205\245", nullptr));
         btn_clearMark->setText(QApplication::translate("lion_assistant", "\346\270\205\347\251\272", nullptr));
         btn_Send->setText(QApplication::translate("lion_assistant", "\345\217\221\351\200\201", nullptr));
         groupBox_3->setTitle(QApplication::translate("lion_assistant", "\345\217\221\351\200\201\350\256\276\347\275\256", nullptr));

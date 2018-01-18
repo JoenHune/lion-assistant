@@ -13,15 +13,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         lion_assistant.cpp \
-    qcustomplot.cpp \
-    is_clear_marked_pid.cpp
+    qcustomplot.cpp
 
 HEADERS  += lion_assistant.h \
-    qcustomplot.h \
-    is_clear_marked_pid.h
+    qcustomplot.h
 
-FORMS    += lion_assistant.ui \
-    is_clear_marked_pid.ui
+FORMS    += lion_assistant.ui
 
 CONFIG += c++11
 

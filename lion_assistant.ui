@@ -249,7 +249,7 @@
       <item row="0" column="0">
        <widget class="QStackedWidget" name="stkWg_MainUI">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="page_2">
          <layout class="QGridLayout" name="gridLayout_8">
@@ -831,7 +831,7 @@
                 </rect>
                </property>
                <property name="text">
-                <string>导入</string>
+                <string>导出</string>
                </property>
               </widget>
               <widget class="QPushButton" name="btn_importMark">
@@ -844,7 +844,7 @@
                 </rect>
                </property>
                <property name="text">
-                <string>导出</string>
+                <string>导入</string>
                </property>
               </widget>
               <widget class="QPushButton" name="btn_clearMark">

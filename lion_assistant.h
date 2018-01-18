@@ -119,6 +119,12 @@ private slots:
 
     void on_tx_option1_textChanged();
 
+    void on_btn_clearMark_clicked(void);
+
+    void on_btn_importMark_clicked();
+
+    void on_btn_exportMark_clicked();
+
 private:
     Ui::lion_assistant *ui;
     QSerialPort* port;
