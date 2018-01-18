@@ -78,8 +78,11 @@ public slots:
 
     double ba2d(QByteArray);
 
+    void clearPIDparams(void);
+
 private slots:
     void on_btn_TextUI_clicked();
+
     void on_btn_OscilUI_clicked();
 
     void on_btn_ch1_clicked();
@@ -116,6 +119,14 @@ private slots:
 
     void on_sb_Delay_valueChanged();
 
+    void on_tx_option1_textChanged();
+
+    void on_btn_clearMark_clicked(void);
+
+    void on_btn_importMark_clicked();
+
+    void on_btn_exportMark_clicked();
+
 private:
     Ui::lion_assistant *ui;
     QSerialPort* port;
@@ -128,9 +139,7 @@ private:
 
     QString oscilloscope_lastItemText;
 
-    long dataQuantity;
-    int delayms;
-    int looptimes;
+    int text_delayms;
     bool dataProcess_hasMsgHead;
     QByteArray dataProcess_MsgBuffer;
 

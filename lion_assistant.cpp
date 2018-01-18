@@ -12,9 +12,9 @@ lion_assistant::lion_assistant(QWidget *parent) :
     timer = new QTimer(this);
     timerScanComs = new QTimer(this);
 
-
+    ui->btn_SendPID->setEnabled(false);
     ui->btn_Send->setEnabled(false);
-    ui->sb_Delay->setRange(0, 10000);
+    ui->sb_Delay->setRange(5, 10000);
 
     connections();
     initSerialPortSetting();
@@ -164,7 +164,7 @@ void lion_assistant::connections(void)
     connect(timer,&QTimer::timeout,this,&lion_assistant::transmit);
 
     /* Stop transmit loop */
-    connect(timer,&QTimer::timeout,[&]{looptimes--;if(looptimes<=0 || !ui->cb_AutoSent->isChecked()) timer->stop();});
+    connect(timer,&QTimer::timeout,[&]{if(!ui->cb_AutoSent->isChecked()) timer->stop();});
 
     // 定时扫描可用串口
     connect(timerScanComs, &QTimer::timeout, this, &lion_assistant::scanComs);
@@ -386,11 +386,11 @@ void lion_assistant::transmitHexadecimal(void)
 /* Transmit data circularly by setting. */
 void lion_assistant::transmitCircularly(void)
 {
-    delayms = ui->sb_Delay->text().toInt();
+    text_delayms = ui->sb_Delay->text().toInt();
     // looptimes = ui->times->text().toInt();
     // if(looptimes>0)
     // {
-        timer->start(delayms);
+        timer->start(text_delayms);
     // }
 }
 
@@ -1068,6 +1068,8 @@ void lion_assistant::on_list_PIDvalue_itemDoubleClicked(QListWidgetItem *item)
 {
     double P, I, D;
 
+    clearPIDparams();
+
     foreach(QString value, item->text().split("|"))
     {
         value.trimmed();
@@ -1215,4 +1217,222 @@ void lion_assistant::on_cb_selectAllChannel_clicked(bool checked)
 void lion_assistant::on_sb_Delay_valueChanged()
 {
     transmitCircularly();
+}
+
+void lion_assistant::clearPIDparams()
+{
+    ui->tx_Pvalue->clear();
+    ui->tx_Ivalue->clear();
+    ui->tx_Dvalue->clear();
+    ui->cb_option1->clicked(false);
+    ui->tx_option1->clear();
+    ui->cb_option2->clicked(false);
+    ui->tx_option2->clear();
+}
+
+void lion_assistant::on_tx_option1_textChanged()
+{
+//  粘贴功能的开发暂时搁置，没有好的逻辑
+//    double P, I, D;
+
+//    QString text = ui->tx_option1->toPlainText();
+
+//    foreach(QString t, text.split("\n"))
+//    {
+//        t.trimmed();
+//        t.replace(" ", "");
+//        switch (t[0].toLatin1())
+//        {
+//            case 'P':
+//                P = t.mid(2).toDouble();
+//                ui->tx_Pvalue->setValue(P);
+//            break;
+//            case 'I':
+//                I = t.mid(2).toDouble();
+//                ui->tx_Ivalue->setValue(I);
+//            break;
+//            case 'D':
+//                D = t.mid(2).toDouble();
+//                ui->tx_Dvalue->setValue(D);
+//            break;
+//            default:
+//                if (t[3] == '1')
+//                {
+//                    ui->tx_option1->setPlainText(t.mid(5));
+//                    ui->cb_option1->setChecked(true);
+//                }
+//                else if (t[3] == '2')
+//                {
+//                    ui->tx_option2->setPlainText(t.mid(5));
+//                    ui->cb_option2->setChecked(true);
+//                }
+//                else break;
+//        }
+//    }
+}
+
+void lion_assistant::on_btn_clearMark_clicked()
+{
+    QMessageBox msgBox(QMessageBox::Warning, tr("确认清空收藏的PID数据"),
+                       tr("被清除的PID数据将无法恢复，\n"
+                          "除非记录已导出到文档。\n"
+                          "\n"
+                          "是否确定清空数据"), 0, this);
+    msgBox.addButton(tr("是"), QMessageBox::AcceptRole);
+    msgBox.addButton(tr("否"), QMessageBox::RejectRole);
+    if (msgBox.exec() == QMessageBox::AcceptRole)
+        ui->list_PIDvalue->clear();
+}
+
+void lion_assistant::on_btn_importMark_clicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+           tr("导入收藏的PID数据"),
+           QStandardPaths::standardLocations(QStandardPaths::DesktopLocation).at(0)
+                                                    + QDir::separator()
+                                                    + tr("pid"),
+           tr("PID Parameters (*.txt);;All Files (.*)"));
+
+    QFile file(fileName);
+    if(!file.open(QFile::ReadOnly | QIODevice::Text))
+    {
+        statusBar()->showMessage("Load file failed",5000);
+        return;
+    }
+
+    QString textImport(file.readAll()),
+            newItem = "";
+
+    textImport.trimmed();
+    textImport.replace(" ", "");
+
+    QList<QString> lines = textImport.split("\n");
+    for (int i = 0; i < lines.length(); i++)
+    {
+        QString line = lines[i];
+
+        line.trimmed();
+        line.simplified();
+        line.replace(" ", "");
+        line.replace(";", "");
+
+        if (line.mid(0, 4) == "----" || i == lines.length() - 1)
+        {
+            if (newItem != "")
+                ui->list_PIDvalue->addItem(newItem);
+            newItem = "";
+            continue;
+        }
+
+        switch (line[0].toLatin1())
+        {
+            case 'P':
+                if (line[1] == "=")
+                {
+                    if (newItem != "")
+                        newItem += " | ";
+                    newItem += "P = " + line.mid(2);
+                }
+            break;
+            case 'I':
+                if (line[1] == "=")
+                {
+                    if (newItem != "")
+                        newItem += " | ";
+                    newItem += "I = " + line.mid(2);
+                }
+            break;
+            case 'D':
+                if (line[1] == "=")
+                {
+                    if (newItem != "")
+                        newItem += " | ";
+                    newItem += "D = " + line.mid(2);
+                }
+            break;
+            default:
+                if (line.mid(0, 4) == "opt1")
+                {
+                    if (newItem != "")
+                        newItem += " | ";
+                    newItem += "opt1 = " + line.mid(5);
+                }
+                else if (line.mid(0, 4) == "opt2")
+                {
+                    if (newItem != "")
+                        newItem += " | ";
+                    newItem += "opt2 = " + line.mid(5);
+                }
+                else break;
+        }
+    }
+
+    file.close();
+}
+
+void lion_assistant::on_btn_exportMark_clicked()
+{
+    if (ui->list_PIDvalue->count() <= 0)
+        return;
+
+    QString textExport;
+
+    textExport = "[Lion Assistant]\n";
+    textExport += QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss") + "\n";
+
+    for (int i = 0; i < ui->list_PIDvalue->count(); i++)
+    {
+        textExport += "-------------------\n";
+
+        QString itemText = ui->list_PIDvalue->item(i)->text();
+        itemText.trimmed();
+        itemText.replace(" ", "");
+
+        foreach(QString value, itemText.split("|"))
+        {
+            value.trimmed();
+            value.replace(" ", "");
+
+            switch (value[0].toLatin1())
+            {
+                case 'P':
+                    textExport += "P = " + value.mid(2) + "\n";
+                break;
+                case 'I':
+                    textExport += "I = " + value.mid(2) + "\n";
+                break;
+                case 'D':
+                    textExport += "D = " + value.mid(2) + "\n";
+                break;
+                default:
+                    if (value[3] == '1')
+                    {
+                        textExport += "opt1 = " + value.mid(5) + "\n";
+                    }
+                    else
+                    {
+                        textExport += "opt2 = " + value.mid(5) + "\n";
+                    }
+                break;
+            }
+        }
+
+        textExport += "Comment: \n\n";
+    }
+
+    QString fileName = QFileDialog::getSaveFileName(this,
+           tr("导出收藏的PID数据到"),
+           QStandardPaths::standardLocations(QStandardPaths::DesktopLocation).at(0)
+                                                    + QDir::separator()
+                                                    + tr("pid"),
+           tr("PID Parameters (*.txt);;All Files (.*)"));
+
+    QFile file(fileName);
+    if(!file.open(QFile::WriteOnly | QIODevice::Text))
+    {
+        statusBar()->showMessage("Save file failed",5000);
+        return;
+    }
+    file.write(textExport.toStdString().c_str());
+    file.close();
 }
