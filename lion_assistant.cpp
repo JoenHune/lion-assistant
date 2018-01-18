@@ -70,6 +70,8 @@ lion_assistant::lion_assistant(QWidget *parent) :
     oscilloscope_lastSelectedChannel = 1;
 
     updateOscilloscope();
+
+    ui->statusBar->clearMessage();
 }
 
 lion_assistant::~lion_assistant()
@@ -164,7 +166,7 @@ void lion_assistant::connections(void)
     connect(timer,&QTimer::timeout,this,&lion_assistant::transmit);
 
     /* Stop transmit loop */
-    connect(timer,&QTimer::timeout,[&]{if(!ui->cb_AutoSent->isChecked()) timer->stop();});
+    connect(timer,&QTimer::timeout,[&]{if(!ui->cb_AutoSent->isChecked() || !serial_isOpen) timer->stop();});
 
     // 定时扫描可用串口
     connect(timerScanComs, &QTimer::timeout, this, &lion_assistant::scanComs);
@@ -220,6 +222,13 @@ void lion_assistant::switchSerial(void)
 
         if(port->open(QSerialPort::ReadWrite))
         {
+            // 关闭自动发送
+            if (timer->isActive())
+                timer->stop();
+
+            // 关闭串口扫描
+            timerScanComs->stop();
+
             ui->btn_OpenSerial->setText(tr("关闭串口"));
             serial_isOpen = true;
 
@@ -229,14 +238,11 @@ void lion_assistant::switchSerial(void)
             ui->cmb_DataBits->setEnabled(false);
             ui->cmb_Parity->setEnabled(false);
             ui->cmb_StopBits->setEnabled(false);
-
-            // 关闭串口扫描
-            timerScanComs->stop();
         }
         else
         {
             QString message = "Connect to " + ui->cmb_PortName->currentText() + " failed : " + port->errorString();
-            statusBar()->showMessage(message,5000);
+            statusBar()->showMessage(message, 5000);
         }
     }
 
@@ -315,7 +321,7 @@ void lion_assistant::transmitString(void)
     QString data = ui->tb_tx_msg->toPlainText();
     if(port->write(data.toStdString().c_str()) == -1)
     {
-        statusBar()->showMessage("Send data failed : "+ port->errorString());
+//        statusBar()->showMessage("Send data failed : "+ port->errorString(), 5000);
         return;
     }
 
@@ -359,7 +365,7 @@ void lion_assistant::transmitHexadecimal(void)
         /* Transmit data. */
         if(port->write(newData.toStdString().c_str()) == -1)
         {
-            statusBar()->showMessage("Send data failed : "+ port->errorString());
+//            statusBar()->showMessage("Send data failed : "+ port->errorString());
             return;
         }
 
@@ -379,7 +385,7 @@ void lion_assistant::transmitHexadecimal(void)
     }
     else
     {
-        statusBar()->showMessage("Data format is error",5000);
+        statusBar()->showMessage("Data format is error", 5000);
     }
 }
 
@@ -401,11 +407,11 @@ void lion_assistant::transmitFile(void)
     QFile file(filename);
     if(!file.open(QFile::ReadOnly))
     {
-        statusBar()->showMessage("Open file failed",5000);
+//        statusBar()->showMessage("Open file failed",5000);
     }
     else if(port->write(file.readAll()) == -1)
     {
-        statusBar()->showMessage("Send data failed : "+ port->errorString(),5000);
+//        statusBar()->showMessage("Send data failed : "+ port->errorString(),5000);
     }
     else
     {
@@ -436,7 +442,7 @@ void lion_assistant::saveAs(void)
     QFile file(filename);
     if(!file.open(QFile::WriteOnly))
     {
-        statusBar()->showMessage("Save file failed",5000);
+//        statusBar()->showMessage("Save file failed",5000);
         return;
     }
     QString text = ui->tb_rx_msg->toPlainText();
@@ -1039,7 +1045,7 @@ void lion_assistant::on_btn_SendPID_clicked()
 
     if(port->write(Requirement.toStdString().c_str()) == -1)
     {
-        statusBar()->showMessage("Send PID failed : " + port->errorString(), 5000);
+//        statusBar()->showMessage("Send PID failed : " + port->errorString(), 5000);
         return;
     }
 }
@@ -1216,7 +1222,8 @@ void lion_assistant::on_cb_selectAllChannel_clicked(bool checked)
 
 void lion_assistant::on_sb_Delay_valueChanged()
 {
-    transmitCircularly();
+    if (serial_isOpen)
+        transmitCircularly();
 }
 
 void lion_assistant::clearPIDparams()
@@ -1296,7 +1303,7 @@ void lion_assistant::on_btn_importMark_clicked()
     QFile file(fileName);
     if(!file.open(QFile::ReadOnly | QIODevice::Text))
     {
-        statusBar()->showMessage("Load file failed",5000);
+//        statusBar()->showMessage("Load file failed",5000);
         return;
     }
 
@@ -1430,7 +1437,7 @@ void lion_assistant::on_btn_exportMark_clicked()
     QFile file(fileName);
     if(!file.open(QFile::WriteOnly | QIODevice::Text))
     {
-        statusBar()->showMessage("Save file failed",5000);
+//        statusBar()->showMessage("Save file failed", 5000);
         return;
     }
     file.write(textExport.toStdString().c_str());
