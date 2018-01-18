@@ -50,7 +50,7 @@ lion_assistant::lion_assistant(QWidget *parent) :
     refer4->setVisible(oscilloscope_isOpenRefer4);
 
     ui->dial_vertical->setRange(1, 999);
-    ui->dial_horizontal->setRange(10, 90);
+    ui->dial_horizontal->setRange(1, 99);
     ui->vSlider_offset->setRange(MIN_SLIDERVALUE, MAX_SLIDERVALUE);
     oscilloscope_lastSliderValue = MID_SLIDERVALUE;
 
@@ -723,7 +723,7 @@ void lion_assistant::on_dial_vertical_actionTriggered()
 void lion_assistant::on_dial_horizontal_actionTriggered()
 {
     int dialValue = ui->dial_horizontal->value();
-    oscilloscope_xMax = int(1000 * (100 - dialValue) / 100);
+    oscilloscope_xMax = int(MAX_DATA_AMOUNT * (100 - dialValue) / 100);
 
     updateOscilloscope();
 }
@@ -1048,6 +1048,12 @@ void lion_assistant::on_btn_SendPID_clicked()
 //        statusBar()->showMessage("Send PID failed : " + port->errorString(), 5000);
         return;
     }
+    else {
+        if (ui->cb_ShowTx->isChecked())
+        {
+            insertDataDisplay(Requirement.toLatin1(), ui->cb_DoubleColor->isChecked() ? QColor(10, 135, 40) : Qt::black);
+        }
+    }
 }
 
 void lion_assistant::on_btn_Mark_clicked()
@@ -1228,12 +1234,12 @@ void lion_assistant::on_sb_Delay_valueChanged()
 
 void lion_assistant::clearPIDparams()
 {
-    ui->tx_Pvalue->clear();
-    ui->tx_Ivalue->clear();
-    ui->tx_Dvalue->clear();
-    ui->cb_option1->clicked(false);
+    ui->tx_Pvalue->setValue(0);
+    ui->tx_Ivalue->setValue(0);
+    ui->tx_Dvalue->setValue(0);
+    ui->cb_option1->setChecked(false);
     ui->tx_option1->clear();
-    ui->cb_option2->clicked(false);
+    ui->cb_option2->setChecked(false);
     ui->tx_option2->clear();
 }
 
