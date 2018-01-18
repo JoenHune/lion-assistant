@@ -43,22 +43,40 @@ public:
 
 public slots:
     void switchSerial(void);
+
     void receive(void);
+
     void send(void);
+
     void transmit(void);
+
     void transmitString(void);
+
     void transmitHexadecimal(void);
+
     void transmitCircularly(void);
+
     void transmitFile(void);
+
     void openFile(void);
+
     void saveAs(void);
+
     void clear(void);
+
     void initialOscilloscope(void);
+
     void updateOscilloscope(void);
+
     void dataProcess(QByteArray);
+
     void scanComs(void);
+
     int calculateSliderValue(double);
+
     void updateOffset(double &, int);
+
+    double ba2d(QByteArray);
 
 private slots:
     void on_btn_TextUI_clicked();

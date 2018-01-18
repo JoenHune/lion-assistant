@@ -16,8 +16,8 @@ lion_assistant::lion_assistant(QWidget *parent) :
     ui->btn_Send->setEnabled(false);
     ui->sb_Delay->setRange(0, 10000);
 
-    initSerialPortSetting();
     connections();
+    initSerialPortSetting();
 
     dataProcess_hasMsgHead = false;
     oscilloscope = ui->qCustomPlot;
@@ -74,7 +74,12 @@ lion_assistant::lion_assistant(QWidget *parent) :
 
 lion_assistant::~lion_assistant()
 {
-    timer->stop();
+    if (timer->isActive())
+        timer->stop();
+
+    if (timerScanComs->isActive())
+        timerScanComs->stop();
+
     port->close();
 
     delete ui;
@@ -84,9 +89,6 @@ lion_assistant::~lion_assistant()
 /* Initialize the serial port setting UI. */
 void lion_assistant::initSerialPortSetting(void)
 {
-    /* Insert the available serial ports into QComboBox. Keep infolist and ui->cmb_PortName in same order.*/
-    portList = QSerialPortInfo::availablePorts();
-
     // 1s扫描一次串口
     timerScanComs->start(1000);
 
@@ -111,8 +113,8 @@ void lion_assistant::initSerialPortSetting(void)
     this->parity << QSerialPort::NoParity << QSerialPort::OddParity << QSerialPort::EvenParity
                  << QSerialPort::SpaceParity << QSerialPort::MarkParity;
     QStringList parity;
-    parity << tr("无校验") << tr("奇校验") << tr("偶校验")
-           << tr("空校验") << tr("标记校验");
+    parity << tr("None") << tr("Odd") << tr("Even")
+           << tr("Space") << tr("Mark");
     ui->cmb_Parity->addItems(parity);
 
     /* Insert choices of stop bits into QComboBox. Keep this->stopBits and stopBits in same order. */
@@ -210,15 +212,17 @@ void lion_assistant::switchSerial(void)
         /* If serial port is closed,open it. */
 
         /* List and QComboBox are in same order,so they can use the same index. */
-        port->setPort(portList[ui->cmb_PortName->currentIndex()]);
+        port->setPortName(ui->cmb_PortName->currentText());
         port->setBaudRate(baudRate[ui->cmb_BaudRate->currentIndex()]);
         port->setDataBits(dataBits[ui->cmb_DataBits->currentIndex()]);
         port->setParity(parity[ui->cmb_Parity->currentIndex()]);
         port->setStopBits(stopBits[ui->cmb_StopBits->currentIndex()]);
+
         if(port->open(QSerialPort::ReadWrite))
         {
             ui->btn_OpenSerial->setText(tr("关闭串口"));
             serial_isOpen = true;
+
             /* Disable all QComboBox.*/
             ui->cmb_PortName->setEnabled(false);
             ui->cmb_BaudRate->setEnabled(false);
@@ -238,7 +242,7 @@ void lion_assistant::switchSerial(void)
 
     /* Enable or disable ui->btn_Send QPushButton. */
     ui->btn_Send->setEnabled(serial_isOpen);
-    // ui->btn_SendFile->setEnabled(isPortOpen);
+    ui->btn_SendPID->setEnabled(serial_isOpen);
 }
 
 /* Receive data from serial port. */
@@ -502,18 +506,23 @@ void lion_assistant::initialOscilloscope()
 }
 
 // 转换函数
-double byteArr2d(QByteArray src)
+// 将ByteArray转换为double，当出现无法辨识的字符时默认转换为0
+double lion_assistant::ba2d(QByteArray src)
 {
     double rst = 0;
     for (int i = 0; i < src.length(); i++)
     {
-        if (src[i].operator >=('a'))
+        if (src[i].operator >=('a') && src[i].operator <=('f'))
         {
             rst = rst * 16 + src[i] - 'a' + 10;
         }
-        else
+        else if (src[i].operator >=('0') && src[i].operator <=('9'))
         {
             rst = rst * 16 + src[i] - '0';
+        }
+        else
+        {
+            rst = rst * 16 + 0;
         }
     }
     return (rst - 32768) / 10;
@@ -550,10 +559,10 @@ void lion_assistant::dataProcess(QByteArray data)
                 if (data3.length() > MAX_DATA_AMOUNT) data3.removeFirst();
                 if (data4.length() > MAX_DATA_AMOUNT) data4.removeFirst();
 
-                data1.append(byteArr2d(dataProcess_MsgBuffer.mid(4, 4)));
-                data2.append(byteArr2d(dataProcess_MsgBuffer.mid(8, 4)));
-                data3.append(byteArr2d(dataProcess_MsgBuffer.mid(12, 4)));
-                data4.append(byteArr2d(dataProcess_MsgBuffer.mid(16, 4)));
+                data1.append(ba2d(dataProcess_MsgBuffer.mid(4, 4)));
+                data2.append(ba2d(dataProcess_MsgBuffer.mid(8, 4)));
+                data3.append(ba2d(dataProcess_MsgBuffer.mid(12, 4)));
+                data4.append(ba2d(dataProcess_MsgBuffer.mid(16, 4)));
 
 //                ui->statusBar->showMessage(QByteArray::number(data1.last()));
                 dataProcess_MsgBuffer.clear();
@@ -1107,12 +1116,12 @@ void lion_assistant::scanComs()
             serial.setPort(portInfo);
 
             // 尝试以读写的方式打开串口
-            if (serial.open(QIODevice::ReadWrite))
+            if (serial.open(QSerialPort::ReadWrite))
             {
                 // 成功开启，将可用串口加到可选列表中
                 ui->cmb_PortName->addItem(portInfo.portName());
 
-                // 关闭自动开启，等待认为打开
+                // 关闭自动开启，等待人为打开
                 serial.close();
 
                 // 设置串口可用flag
