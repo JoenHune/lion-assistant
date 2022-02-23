@@ -110,7 +110,7 @@ Bug修复累计更新，同时引入了一些新特性。
 
 ### 2. 文本收发界面
 
-![文本调试界面](https://gitlab.com/sysulion/lion_assistant/raw/master/readmePics/textui_v1.2.1.png)
+![文本调试界面](readmePics/textui_v1.2.1.png)
 
 分为数据接收显示区（左上）、数据发送编辑区（左下）和设置区（右），设置区可对接收和发送参数进行设置。
 
@@ -132,7 +132,7 @@ Bug修复累计更新，同时引入了一些新特性。
 
 ### 3. PID设置界面
 
-![PID调试界面](https://gitlab.com/sysulion/lion_assistant/raw/master/readmePics/pidui_v1.2.1.png)
+![PID调试界面](readmePics/pidui_v1.2.1.png)
 
 分为虚拟示波器（上方）、示波器设置区（左下）和PID参数设置区（右下）
 
